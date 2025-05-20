@@ -2,6 +2,7 @@ transformers
 streamlit
 langchain
 PyPDF2
+torch
 openai
 pdfkit
 requests
