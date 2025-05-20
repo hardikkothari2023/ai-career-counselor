@@ -2,12 +2,13 @@ transformers
 streamlit
 langchain
 PyPDF2
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+torchaudio
 fpdf
 openai
 pdfkit
 requests
-fitz
 PyMuPDF
 spacy==3.8.2
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz
@@ -21,4 +22,4 @@ tqdm
 ipython
 jupyter
 streamlit-lottie
-huggingface_hub[hf_xet] 
+huggingface_hub[hf_xet]
