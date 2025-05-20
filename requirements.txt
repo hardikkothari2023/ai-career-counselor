@@ -2,7 +2,8 @@ transformers
 streamlit
 langchain
 PyPDF2
-torch
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+fpdf
 openai
 pdfkit
 requests
@@ -20,3 +21,4 @@ tqdm
 ipython
 jupyter
 streamlit-lottie
+huggingface_hub[hf_xet] 
