@@ -17,3 +17,4 @@ tqdm
 ipython
 jupyter
 lottie
+streamlit-lottie
