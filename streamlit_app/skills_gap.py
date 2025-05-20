@@ -14,7 +14,7 @@ REQUIRED_SKILLS = {
     'Data Analyst': {'python', 'sql', 'excel', 'tableau', 'pandas', 'data visualization'},
 }
 
-def analyze_skill_gap(user_skills, predicted_career):
+def get_missing_skills(user_skills, predicted_career):
     required = REQUIRED_SKILLS.get(predicted_career, set())
     missing = required - set(user_skills)
     return list(missing)
