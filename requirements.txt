@@ -1,11 +1,9 @@
 transformers
 streamlit
 langchain
-pyPDF2
+PyPDF2
 openai
 pdfkit
-wkhtmltopdf
-lottie-s
 requests
 fpdf
 spacy
@@ -18,3 +16,4 @@ scikit-learn
 tqdm
 ipython
 jupyter
+lottie
