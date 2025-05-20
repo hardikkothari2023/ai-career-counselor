@@ -6,6 +6,12 @@
 > An intelligent, all-in-one career guidance platform powered by AI — helping users discover the right career path, identify skill gaps, and plan their future with confidence.
 
 ---
+---
+
+### ✅ **Live Demo**  
+👉 [Try the AI Career Counselor App](https://ai-career-counselor-by-hardik.streamlit.app/)
+
+---
 
 ## 📌 Table of Contents
 
