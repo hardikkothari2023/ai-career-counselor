@@ -59,17 +59,45 @@ def train_model():
     print(classification_report(y_test, y_pred, target_names=le.classes_, zero_division=0))
 
 def predict_career(skills, education):
+    """
+    Predicts the best career role based on extracted skills and education.
+    Handles encoding consistency and missing feature alignment.
+    """
+    # Load model and encoders
     clf = joblib.load(MODEL_PATH)
     mlb = joblib.load(os.path.join("models", "mlb.pkl"))
     edu_encoder = joblib.load(os.path.join("models", "edu_encoder.pkl"))
     le = joblib.load(os.path.join("models", "label_encoder.pkl"))
 
-    skill_input = mlb.transform([skills])
-    edu_input = edu_encoder.transform([[education]])
+    # Ensure all inputs are lowercase and stripped
+    skills = [s.lower().strip() for s in skills]
+    education = education.lower().strip()
+
+    # Handle unknown skills (not in training vocabulary)
+    known_skills = set(mlb.classes_)
+    filtered_skills = [s for s in skills if s in known_skills]
+
+    if not filtered_skills:
+        # If all skills are unseen, predict based on education alone
+        skill_input = np.zeros((1, len(mlb.classes_)))
+    else:
+        skill_input = mlb.transform([filtered_skills])
+
+    # Encode education safely
+    try:
+        edu_input = edu_encoder.transform([[education]])
+    except Exception:
+        # If unseen education, use a neutral vector (zeros)
+        edu_input = np.zeros((1, edu_encoder.categories_[0].shape[0]))
+
+    # Combine features
     X = np.hstack([skill_input, edu_input])
 
+    # Predict and decode label
     prediction = clf.predict(X)
-    return le.inverse_transform(prediction)[0]
+    career = le.inverse_transform(prediction)[0]
+
+    return career
 
 # Run training if file is executed directly
 if __name__ == "__main__":
