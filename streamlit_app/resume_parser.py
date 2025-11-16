@@ -86,57 +86,48 @@ def extract_text_from_pdf(file_obj):
 def extract_name(text):
     doc = nlp(text)
 
-    # Words that indicate it's NOT a name
     INVALID_NAME_WORDS = {
         "resume", "curriculum", "vitae", "cv", "profile",
-        "details", "name", "contact", "email", "phone", "information"
+        "details", "contact", "name", "personal", "information"
     }
 
-    # --- STEP 1: Try spaCy PERSON entities ---
+    # Step 1: NER candidates (PERSON)
     candidates = []
     for ent in doc.ents:
         if ent.label_ == "PERSON":
             clean = ent.text.strip()
-
+            # Skip if contains invalid words
             words = clean.lower().split()
             if not any(w in INVALID_NAME_WORDS for w in words):
-                if 2 <= len(words) <= 4:
-                    candidates.append(clean)
+                # skip likely non-name patterns with digits
+                if not any(char.isdigit() for char in clean):
+                    if 2 <= len(clean.split()) <= 4:
+                        candidates.append(clean)
 
-    # If spaCy gave valid candidates → return best one
     if candidates:
-        # Return shortest valid name (usually correct)
-        return min(candidates, key=len)
+        # choose shortest or first
+        return min(candidates, key=lambda x: len(x.split()))
 
-    # --- STEP 2: Look for typical name patterns above contact section ---
+    # Step 2: Use top few lines heuristic
     lines = [l.strip() for l in text.split("\n") if l.strip()]
-    for line in lines[:5]:  # Check top 5 lines (where name usually exists)
+    for i, line in enumerate(lines[:5]):  # look first up to 5 lines
         words = line.split()
         if 2 <= len(words) <= 4:
             lw = [w.lower() for w in words]
             if not any(w in INVALID_NAME_WORDS for w in lw):
-                # Heuristic: Name lines rarely contain ":" or numbers
-                if not any(c.isdigit() for c in line) and ":" not in line:
+                if not any(ch.isdigit() for ch in line):
                     return line
 
-    # --- STEP 3: Regex for human names (English + Indian) ---
+    # Step 3: Regex fallback
     name_pattern = r"[A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+){1,3}"
-    matches = re.findall(name_pattern, text)
-    filtered = [
-        m for m in matches
-        if not any(w.lower() in INVALID_NAME_WORDS for w in m.lower().split())
-    ]
-    if filtered:
-        return filtered[0]
-
-    # --- STEP 4: Advanced fallback (capitalized first line) ---
-    if lines:
-        first = lines[0]
-        if first.replace(" ", "").isalpha():
-            if len(first.split()) in [2, 3, 4]:
-                return first
+    match = re.search(name_pattern, text)
+    if match:
+        candidate = match.group()
+        if all(w.lower() not in INVALID_NAME_WORDS for w in candidate.lower().split()):
+            return candidate
 
     return "Unknown"
+
 
 
 
