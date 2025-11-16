@@ -23,3 +23,5 @@ ipython
 jupyter
 streamlit-lottie
 huggingface_hub[hf_xet]
+easyocr
+pillow

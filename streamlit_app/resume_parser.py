@@ -73,61 +73,54 @@ BRANCH_PATTERNS = [
 ]
 
 # ------------------ PDF TEXT EXTRACTION ------------------
+import fitz
+import easyocr
+from PIL import Image
+import io
+
+reader = easyocr.Reader(['en'], gpu=False)
+
 def extract_text_from_pdf(file_obj):
     text = ""
     file_obj.seek(0)
+    
     with fitz.open(stream=file_obj.read(), filetype="pdf") as doc:
         for page in doc:
-            text += page.get_text("text")
+            pix = page.get_pixmap()
+            img = Image.open(io.BytesIO(pix.tobytes("png")))
+            ocr_result = reader.readtext(np.array(img), detail=0)
+            text += " ".join(ocr_result) + "\n"
     return text
-
 
 # ------------------ NAME EXTRACTION ------------------
 def extract_name(text):
     doc = nlp(text)
 
-    INVALID_NAME_WORDS = {
-        "resume", "curriculum", "vitae", "cv", "profile",
-        "details", "contact", "name", "personal", "information"
-    }
+    INVALID_NAME_WORDS = {"resume","curriculum","vitae","cv","profile","bio","data","name"}
 
-    # Step 1: NER candidates (PERSON)
-    candidates = []
+    # 1. Primary: spaCy PERSON entities but skip invalid words
     for ent in doc.ents:
         if ent.label_ == "PERSON":
-            clean = ent.text.strip()
-            # Skip if contains invalid words
-            words = clean.lower().split()
+            words = ent.text.lower().split()
             if not any(w in INVALID_NAME_WORDS for w in words):
-                # skip likely non-name patterns with digits
-                if not any(char.isdigit() for char in clean):
-                    if 2 <= len(clean.split()) <= 4:
-                        candidates.append(clean)
+                return ent.text.strip()
 
-    if candidates:
-        # choose shortest or first
-        return min(candidates, key=lambda x: len(x.split()))
-
-    # Step 2: Use top few lines heuristic
+    # 2. Secondary fallback: first line that looks like a human name
     lines = [l.strip() for l in text.split("\n") if l.strip()]
-    for i, line in enumerate(lines[:5]):  # look first up to 5 lines
-        words = line.split()
+    if lines:
+        first = lines[0]
+        words = first.split()
         if 2 <= len(words) <= 4:
-            lw = [w.lower() for w in words]
-            if not any(w in INVALID_NAME_WORDS for w in lw):
-                if not any(ch.isdigit() for ch in line):
-                    return line
+            if not any(w.lower() in INVALID_NAME_WORDS for w in words):
+                return first
 
-    # Step 3: Regex fallback
-    name_pattern = r"[A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+){1,3}"
+    # 3. Regex fallback
+    name_pattern = r"[A-Z][a-z]+(?:\s[A-Z][a-z]+){1,3}"
     match = re.search(name_pattern, text)
     if match:
-        candidate = match.group()
-        if all(w.lower() not in INVALID_NAME_WORDS for w in candidate.lower().split()):
-            return candidate
+        return match.group()
 
     return "Unknown"
-
 
 
 
