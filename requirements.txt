@@ -1,27 +1,70 @@
+# transformers
+# streamlit
+# langchain
+# PyPDF2
+# torch
+# torchvision
+# torchaudio
+# fpdf2
+# openai
+# pdfkit
+# requests
+# PyMuPDF
+# spacy==3.8.2
+# https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz
+# pytest
+# pandas
+# numpy
+# seaborn
+# matplotlib
+# scikit-learn
+# tqdm
+# ipython
+# jupyter
+# streamlit-lottie
+# huggingface_hub[hf_xet]
+# easyocr
+# pillow
+# Core ML + NLP
 transformers
-streamlit
 langchain
-PyPDF2
-torch
-torchvision
-torchaudio
-fpdf2
-openai
-pdfkit
-requests
-PyMuPDF
-spacy==3.8.2
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz
-pytest
 pandas
 numpy
-seaborn
-matplotlib
 scikit-learn
-tqdm
-ipython
-jupyter
-streamlit-lottie
-huggingface_hub[hf_xet]
+
+# Torch (CPU only — prevents huge CUDA downloads)
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
+
+# OCR + PDF
+PyMuPDF==1.23.26
 easyocr
 pillow
+
+# spaCy (exact version + model safe install)
+spacy==3.8.2
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz
+
+# Streamlit + UI
+streamlit
+streamlit-lottie
+
+# Chat API
+requests
+openai
+
+# PDF generation
+fpdf2
+
+# Visualization
+matplotlib
+seaborn
+
+# Tools
+tqdm
+
+# Testing
+pytest
+ipython
+jupyter
