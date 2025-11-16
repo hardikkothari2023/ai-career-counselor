@@ -96,32 +96,66 @@ def extract_text_from_pdf(file_obj):
 def extract_name(text):
     doc = nlp(text)
 
-    INVALID_NAME_WORDS = {"resume","curriculum","vitae","cv","profile","bio","data","name"}
+    INVALID_NAME_WORDS = {
+        "resume","curriculum","vitae","cv","profile","name","contact","details",
+        "github","linkedin","email","mobile","phone"
+    }
 
-    # 1. Primary: spaCy PERSON entities but skip invalid words
+    # 1. spaCy PERSON Entities
     for ent in doc.ents:
         if ent.label_ == "PERSON":
-            words = ent.text.lower().split()
-            if not any(w in INVALID_NAME_WORDS for w in words):
-                return ent.text.strip()
+            clean = ent.text.strip()
+            words = clean.lower().split()
 
-    # 2. Secondary fallback: first line that looks like a human name
+            # Reject if contains invalid words
+            if any(w in INVALID_NAME_WORDS for w in words):
+                continue
+
+            # Reject if part of a URL
+            if "http" in clean.lower() or ".com" in clean.lower():
+                continue
+
+            # Normal human name must have 2–4 words
+            if 1 <= len(clean.split()) <= 4:
+                return clean
+
+    # 2. First line fallback
     lines = [l.strip() for l in text.split("\n") if l.strip()]
     if lines:
         first = lines[0]
-        words = first.split()
-        if 2 <= len(words) <= 4:
-            if not any(w.lower() in INVALID_NAME_WORDS for w in words):
-                return first
+        if first.replace(" ", "").isalpha() and 1 <= len(first.split()) <= 4:
+            return first
 
     # 3. Regex fallback
-    name_pattern = r"[A-Z][a-z]+(?:\s[A-Z][a-z]+){1,3}"
-    match = re.search(name_pattern, text)
+    match = re.search(r"\b[A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+){0,3}\b", text)
     if match:
         return match.group()
 
     return "Unknown"
 
+
+def clean_text_before_name_extraction(text):
+    lines = text.split("\n")
+    cleaned = []
+
+    for line in lines:
+        low = line.lower()
+
+        # Remove lines with links
+        if "http" in low or "www" in low or ".com" in low or ".in/" in low:
+            continue
+
+        # Remove lines containing email
+        if "@" in low:
+            continue
+
+        # Remove lines with phone numbers
+        if any(char.isdigit() for char in low) and ("+" in low or "-" in low):
+            continue
+
+        cleaned.append(line)
+
+    return "\n".join(cleaned)
 
 
 # ------------------ DEGREE EXTRACTION ------------------
@@ -183,8 +217,11 @@ def extract_skills(text):
 def extract_skills_from_pdf(uploaded_file):
     text = extract_text_from_pdf(uploaded_file)
 
+    cleaned_text = clean_text_before_name_extraction(text)
+
     return {
-        "name": extract_name(text),
+        "name": extract_name(cleaned_text),
         "education": extract_education(text),
         "skills": extract_skills(text)
     }
+
