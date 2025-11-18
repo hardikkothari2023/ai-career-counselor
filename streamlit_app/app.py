@@ -213,7 +213,8 @@ with tabs[2]:
     if "resume_data" not in st.session_state:
         st.warning("Please upload your resume first to extract skills.")
     else:
-        skills = resume_data.get("skills", [])
+        skills = st.session_state.resume_data.get("skills", [])
+
         technical_questions = generate_technical_questions(skills)
         quiz_questions = get_quiz_questions() + technical_questions
 
