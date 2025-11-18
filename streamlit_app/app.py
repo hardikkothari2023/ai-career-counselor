@@ -196,7 +196,10 @@ with tabs[1]:
         uploaded_file = st.file_uploader("Upload your resume (PDF only)", type=["pdf"])
         if uploaded_file is not None:
             with st.spinner("⏳ Extracting skills and education from your resume..."):
-                st.session_state.resume_data = extract_skills_from_pdf(uploaded_file)
+                import importlib
+                resume_parser = importlib.import_module("resume_parser")
+                st.session_state.resume_data = resume_parser.extract_skills_from_pdf(uploaded_file)
+
                 resume_data = st.session_state.resume_data
 
             st.success("✅ Resume processed successfully!")
