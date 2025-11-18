@@ -164,7 +164,14 @@ def create_pdf(skills, recommendations, missing_skills_by_career=None):
 
 # === Step Navigation ===
 step = st.selectbox("Navigate to Step:", ["Introduction", "Resume Upload", "Personality Quiz", "Prediction", "Chat Summary", "Skills Gap Filler"])
-tabs = st.tabs(["🏁 Introduction", "📄 Resume Upload", "🧠 Personality Quiz", "📝 Chat Summary" , "ℹ️About"])
+tabs = st.tabs([
+    "🏁 Introduction",
+    "📄 Resume Upload",
+    "🧠 Personality Quiz",
+    "📝 Chat Summary",
+    "ℹ️ About"
+])
+
 
 # === Tab 1: Introduction ===
 with tabs[0]:
@@ -189,7 +196,8 @@ with tabs[1]:
         uploaded_file = st.file_uploader("Upload your resume (PDF only)", type=["pdf"])
         if uploaded_file is not None:
             with st.spinner("⏳ Extracting skills and education from your resume..."):
-                resume_data = extract_skills_from_pdf(uploaded_file)
+                st.session_state.resume_data = extract_skills_from_pdf(uploaded_file)
+                resume_data = st.session_state.resume_data
 
             st.success("✅ Resume processed successfully!")
             st.markdown(f"**📌 Name:** `{resume_data['name']}`")
@@ -202,7 +210,7 @@ with tabs[1]:
 
 # === Tab 3: Personality Quiz ===
 with tabs[2]:
-    if "resume_data" not in locals():
+    if "resume_data" not in st.session_state:
         st.warning("Please upload your resume first to extract skills.")
     else:
         skills = resume_data.get("skills", [])
