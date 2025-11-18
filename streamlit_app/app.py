@@ -62,11 +62,12 @@ Welcome to your smart career guide! This tool analyzes your resume and personali
 
 # === PDF Report Generator ===
 def create_pdf(skills, recommendations, missing_skills_by_career=None):
-    from fpdf import FPDF
+    from fpdf import FPDF, XPos, YPos
     from datetime import datetime
     from io import BytesIO
     import re
 
+    # --- Clean text ---
     def sanitize_text(text):
         text = re.sub(r'[\u200B-\u200D\uFEFF]', '', text)
         text = ''.join(ch if ch.isprintable() else ' ' for ch in text)
@@ -85,38 +86,47 @@ def create_pdf(skills, recommendations, missing_skills_by_career=None):
 
     class PDFWithWatermark(FPDF):
         def header(self):
+            # No deprecation warnings here
             self.image("streamlit_app/assets/logo_watermark.png", x=5, y=20, w=200)
 
     pdf = PDFWithWatermark()
-    pdf.set_margins(left=15, top=15, right=15)
+    pdf.set_margins(15, 15, 15)
     pdf.add_page()
 
+    # FONT FIX → Do NOT use uni=True
     font_path = get_dejavu_font_path()
-    pdf.add_font("DejaVu", "", font_path, uni=True)
+    pdf.add_font("DejaVu", "", font_path)
     pdf.set_font("DejaVu", "", 16)
-    pdf.ln(10)
-    pdf.cell(0, 10, "Career Recommendations", ln=True, align="C")
-    pdf.ln(10)
 
+    pdf.ln(10)
+    pdf.cell(0, 10, "Career Recommendations", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
+    pdf.ln(5)
+
+    # Skills
     pdf.set_font("DejaVu", "", 12)
     skills_text = ', '.join([sanitize_text(s) for s in skills])
     skills_text = split_long_words(skills_text)
-    pdf.multi_cell(w=180, h=10, txt=f"Extracted Skills: {skills_text}", new_x="LEFT")
+
+    pdf.multi_cell(180, 8, f"Extracted Skills: {skills_text}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.ln(5)
 
-    pdf.cell(0, 10, "Top Recommended Careers:", ln=True)
-    pdf.ln(5)
+    # Careers
+    pdf.set_font("DejaVu", "", 12)
+    pdf.cell(0, 10, "Top Recommended Careers:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.ln(3)
+
     for career in recommendations:
-        ctext = sanitize_text(career)
-        ctext = split_long_words(ctext)
-        pdf.multi_cell(w=180, h=10, txt=ctext, new_x="LEFT")
+        clean = split_long_words(sanitize_text(career))
+        pdf.multi_cell(180, 8, clean, new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-    # Add a new page before missing skills section to prevent overflow
+    # Skill Gap Section
     if missing_skills_by_career:
         pdf.add_page()
-        pdf.ln(10)
         pdf.set_font("DejaVu", "", 14)
-        pdf.cell(0, 10, "Skills You Might Need to Learn:", ln=True)
+        pdf.cell(0, 10, "Skills You Might Need to Learn:", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.ln(5)
+
+        pdf.set_font("DejaVu", "", 12)
 
         any_missing = False
         for career in recommendations:
@@ -124,39 +134,31 @@ def create_pdf(skills, recommendations, missing_skills_by_career=None):
 
             if required_skills:
                 any_missing = True
-                pdf.ln(5)
-                pdf.set_font("DejaVu", "", 12)
-
-                if pdf.get_y() > 260:
-                    pdf.add_page()
-
-                pdf.cell(0, 10, sanitize_text(career), ln=True)
+                pdf.cell(0, 10, sanitize_text(career), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
                 for skill in required_skills:
-                    clean_skill = sanitize_text(skill)
-                    if clean_skill:
-                        clean_skill = split_long_words(clean_skill)
+                    clean_skill = split_long_words(sanitize_text(skill))
+                    pdf.multi_cell(180, 8, f"- {clean_skill}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-                        if pdf.get_y() > 260:
-                            pdf.add_page()
-
-                        try:
-                            pdf.multi_cell(w=180, h=10, txt=f"- {clean_skill}", new_x="LEFT")
-                        except Exception as e:
-                            pdf.cell(0, 10, f"- [Error displaying skill]", ln=True)
+                pdf.ln(3)
 
         if not any_missing:
-            pdf.ln(10)
-            pdf.set_font("DejaVu", "", 12)
-            pdf.multi_cell(w=180, h=10, txt="You're all set! No new skills required.", new_x="LEFT")
+            pdf.multi_cell(180, 8, "You're all set! No new skills required.", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
     # Footer
-    pdf.set_y(-15)
+    pdf.set_y(-20)
     pdf.set_font("DejaVu", "", 10)
-    pdf.cell(0, 10, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, "C")
+    pdf.cell(
+        0, 
+        10, 
+        f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        new_x=XPos.LMARGIN,
+        new_y=YPos.NEXT,
+        align="C"
+    )
 
     pdf_output = BytesIO()
-    pdf.output(pdf_output)
+    pdf.output(pdf_output)      # ✔ CORRECT for fpdf2
     return pdf_output.getvalue()
 
 
