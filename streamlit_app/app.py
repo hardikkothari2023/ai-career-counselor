@@ -236,40 +236,44 @@ with tabs[2]:
             score = st.slider(q['question'], 1, 5, 3, key=f"quiz_{i}")
             responses.append(score)
 
-        # 🔥 FIX — button inside same block
         if st.button("Evaluate Personality and Show Careers"):
 
-            recommendations = evaluate_personality(responses, quiz_questions)
+            # FULL result dictionary
+            result = evaluate_personality(responses, quiz_questions)
+
+            # Extract only top careers
+            recommendations = [c[0] for c in result["ranked_careers"]]
+
             st.session_state["quiz_recommendations"] = recommendations
 
             st.success("Top Recommended Careers:")
             for career in recommendations:
                 st.markdown(f"✅ {career}")
 
-            # Skill gap
+            # ---- Skill gap ----
             career_skill_map = {career: get_missing_skills(skills, career) for career in recommendations}
             normalized_resume_skills = set(s.lower().strip() for s in skills)
 
             st.markdown("### Skills You Might Need to Learn:")
 
-            for career in recommendations:   # ONLY predicted careers
+            for career in recommendations:
                 missing = career_skill_map.get(career, [])
-                
-                # Remove skills you already have
+
                 filtered_missing = [
-                    m for m in missing 
+                    m for m in missing
                     if m.lower().strip() not in normalized_resume_skills
                 ]
-                
+
                 if filtered_missing:
                     st.markdown(f"**🔹 {career}:** {', '.join(filtered_missing)}")
                 else:
                     st.markdown(f"**🔹 {career}:** You're good! 🎉")
 
-
             # PDF
             pdf_bytes = create_pdf(skills, recommendations, career_skill_map)
             st.session_state["pdf_bytes"] = pdf_bytes
+
+
 
 
 
