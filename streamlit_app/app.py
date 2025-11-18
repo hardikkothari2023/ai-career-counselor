@@ -156,7 +156,7 @@ def create_pdf(skills, recommendations, missing_skills_by_career=None):
     pdf.cell(0, 10, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, "C")
 
     pdf_output = BytesIO()
-    pdf.output(pdf_output,'F')
+    pdf.output(pdf_output)
     return pdf_output.getvalue()
 
 
