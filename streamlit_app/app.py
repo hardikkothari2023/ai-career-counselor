@@ -156,7 +156,7 @@ def create_pdf(skills, recommendations, missing_skills_by_career=None):
     pdf.cell(0, 10, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, "C")
 
     pdf_output = BytesIO()
-    pdf.output(pdf_output)
+    pdf.output(pdf_output,'F')
     return pdf_output.getvalue()
 
 
@@ -209,47 +209,54 @@ with tabs[1]:
         st_lottie(resume_animation, height=300)
 
 # === Tab 3: Personality Quiz ===
+# === Tab 3: Personality Quiz ===
+# === Tab 3: Personality Quiz ===
 with tabs[2]:
+
     if "resume_data" not in st.session_state:
         st.warning("Please upload your resume first to extract skills.")
+
     else:
         skills = st.session_state.resume_data.get("skills", [])
 
-        technical_questions = generate_technical_questions(skills)
-        quiz_questions = get_quiz_questions() + technical_questions
+        # 🔥 Fix: Generate questions only once
+        if "quiz_questions" not in st.session_state:
+            technical_questions = generate_technical_questions(skills)
+            st.session_state.quiz_questions = get_quiz_questions() + technical_questions
+
+        quiz_questions = st.session_state.quiz_questions
 
         st.subheader("Answer the following questions (1 - Strongly Disagree to 5 - Strongly Agree):")
+
         responses = []
         for i, q in enumerate(quiz_questions):
             score = st.slider(q['question'], 1, 5, 3, key=f"quiz_{i}")
             responses.append(score)
 
-    if st.button("Evaluate Personality and Show Careers"):
-        recommendations = evaluate_personality(responses, quiz_questions)
-        st.session_state["quiz_recommendations"] = recommendations  # store for reuse
+        # 🔥 FIX — button inside same block
+        if st.button("Evaluate Personality and Show Careers"):
 
-        st.success("Top Recommended Careers:")
-        for career in recommendations:
-            st.markdown(f"✅ {career}")
+            recommendations = evaluate_personality(responses, quiz_questions)
+            st.session_state["quiz_recommendations"] = recommendations
 
-        career_skill_map = {career: get_missing_skills(skills, career) for career in recommendations}
-        normalized_resume_skills = set(s.lower().strip() for s in skills)
-        st.markdown("### Skills You Might Need to Learn:")
-        for career, missing in career_skill_map.items():
-            filtered_missing = [m for m in missing if m.lower().strip() not in normalized_resume_skills]
-            st.markdown(f"**🔹 {career}:** {', '.join(filtered_missing) if filtered_missing else 'You\'re good!'}")
+            st.success("Top Recommended Careers:")
+            for career in recommendations:
+                st.markdown(f"✅ {career}")
 
-        pdf_bytes = create_pdf(skills, recommendations, career_skill_map)
-        st.session_state["pdf_bytes"] = pdf_bytes  # save PDF to session state
+            # Skill gap
+            career_skill_map = {career: get_missing_skills(skills, career) for career in recommendations}
+            normalized_resume_skills = set(s.lower().strip() for s in skills)
 
-    # Show download button if PDF exists in session state
-    if "pdf_bytes" in st.session_state:
-        st.download_button(
-            label="📄 Download Career Report (PDF)",
-            data=st.session_state["pdf_bytes"],
-            file_name=f"career_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-            mime="application/pdf"
-        )
+            st.markdown("### Skills You Might Need to Learn:")
+            for career, missing in career_skill_map.items():
+                filtered_missing = [m for m in missing if m.lower().strip() not in normalized_resume_skills]
+                st.markdown(f"**{career}:** {', '.join(filtered_missing) if filtered_missing else 'No additional skills needed!'}")
+
+            # PDF
+            pdf_bytes = create_pdf(skills, recommendations, career_skill_map)
+            st.session_state["pdf_bytes"] = pdf_bytes
+
+
 
 # === Tab 4: Chat Summary ===
 with tabs[3]:
