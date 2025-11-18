@@ -38,15 +38,17 @@ numpy==1.26.4
 
 # ===== PDF =====
 PyMuPDF==1.23.26
-fpdf2
+fpdf2==2.8.5
 pillow==10.3.0
 
 # ===== NLP =====
 spacy==3.7.4
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
 
-# ===== OCR =====
-easyocr==1.7.1
+# ===== OCR (Primary + Fallback) =====
+pytesseract          # primary OCR engine
+opencv-python-headless==4.10.0.84   # required for deskew + preprocessing
+easyocr==1.7.1       # fallback only if tesseract absent
 
 # ===== ML =====
 scikit-learn
@@ -55,3 +57,4 @@ transformers
 # ===== UTIL =====
 tqdm
 pytest
+
