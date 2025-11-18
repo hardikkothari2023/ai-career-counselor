@@ -274,7 +274,13 @@ with tabs[2]:
             # PDF
             pdf_bytes = create_pdf(skills, recommendations, career_skill_map)
             st.session_state["pdf_bytes"] = pdf_bytes
-
+            if "pdf_bytes" in st.session_state:
+                st.download_button(
+                    label="📄 Download Career Report (PDF)",
+                    data=st.session_state["pdf_bytes"],
+                    file_name=f"career_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf"
+                )
 
 
 
