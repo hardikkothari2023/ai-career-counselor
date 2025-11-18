@@ -251,9 +251,21 @@ with tabs[2]:
             normalized_resume_skills = set(s.lower().strip() for s in skills)
 
             st.markdown("### Skills You Might Need to Learn:")
-            for career, missing in career_skill_map.items():
-                filtered_missing = [m for m in missing if m.lower().strip() not in normalized_resume_skills]
-                st.markdown(f"**{career}:** {', '.join(filtered_missing) if filtered_missing else 'No additional skills needed!'}")
+
+            for career in recommendations:   # ONLY predicted careers
+                missing = career_skill_map.get(career, [])
+                
+                # Remove skills you already have
+                filtered_missing = [
+                    m for m in missing 
+                    if m.lower().strip() not in normalized_resume_skills
+                ]
+                
+                if filtered_missing:
+                    st.markdown(f"**🔹 {career}:** {', '.join(filtered_missing)}")
+                else:
+                    st.markdown(f"**🔹 {career}:** You're good! 🎉")
+
 
             # PDF
             pdf_bytes = create_pdf(skills, recommendations, career_skill_map)
