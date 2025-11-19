@@ -205,7 +205,7 @@ with tabs[1]:
                 resume_data = st.session_state.resume_data
 
             st.success("✅ Resume processed successfully!")
-            st.markdown(f"**📌 Name:** `{resume_data['name']}`")
+            # st.markdown(f"**📌 Name:** `{resume_data['name']}`")
             st.markdown(f"**🎓 Education Level:** `{resume_data['education']}`")
             st.markdown("**🛠 Skills:**")
             st.code(", ".join(resume_data["skills"]), language="markdown")
